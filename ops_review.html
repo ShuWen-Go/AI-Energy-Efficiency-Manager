@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>运营审核后台 · AI能效管家</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#F0F2F5;color:#1F1F1F}
+  .topbar{background:#fff;height:56px;display:flex;align-items:center;padding:0 24px;border-bottom:1px solid #E8E8E8;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .topbar h1{font-size:18px;font-weight:600}
+  .topbar .date{margin-left:16px;font-size:13px;color:#8C8C8C}
+  .topbar .progress{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:13px}
+  .pbar{width:160px;height:8px;background:#F0F0F0;border-radius:4px;overflow:hidden}
+  .pbar i{display:block;height:100%;background:#52C41A;border-radius:4px}
+  .layout{display:flex;height:calc(100vh - 56px)}
+  /* 左侧科室列表 */
+  .sidebar{width:280px;background:#fff;border-right:1px solid #E8E8E8;overflow-y:auto}
+  .sb-head{padding:14px 16px;font-size:13px;font-weight:600;color:#595959;border-bottom:1px solid #F0F0F0;display:flex;justify-content:space-between}
+  .sb-tab{display:flex;border-bottom:1px solid #F0F0F0}
+  .sb-tab span{flex:1;text-align:center;padding:8px;font-size:12px;cursor:pointer;color:#8C8C8C;border-bottom:2px solid transparent}
+  .sb-tab span.active{color:#1677FF;border-bottom-color:#1677FF;font-weight:600}
+  .dept-item{padding:10px 16px;border-bottom:1px solid #F5F5F5;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+  .dept-item:hover{background:#FAFAFA}
+  .dept-item.active{background:#E6F4FF;border-left:3px solid #1677FF;padding-left:13px}
+  .dept-item .dn{font-size:13px;font-weight:500}
+  .dept-item .ds{font-size:11px;margin-top:2px}
+  .ds.pending{color:#FAAD14}
+  .ds.passed{color:#52C41A}
+  .ds.fixed{color:#1677FF}
+  /* 右侧审核区 */
+  .main{flex:1;overflow-y:auto;padding:20px 24px}
+  .review-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+  .review-head h2{font-size:16px}
+  .review-head .meta{font-size:12px;color:#8C8C8C}
+  .review-card{background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:14px;overflow:hidden}
+  .rc-head{padding:12px 16px;border-bottom:1px solid #F0F0F0;display:flex;justify-content:space-between;align-items:center;background:#FAFAFA}
+  .rc-head .t{font-size:14px;font-weight:600}
+  .rc-head .status{font-size:12px;padding:3px 10px;border-radius:10px}
+  .st-pass{background:#F6FFED;color:#52C41A;border:1px solid #B7EB8F}
+  .st-fix{background:#E6F4FF;color:#1677FF;border:1px solid #ADC6FF}
+  .st-pending{background:#FFF7E6;color:#D48806;border:1px solid #FFE58F}
+  .rc-body{padding:14px 16px}
+  .rc-body .preview{background:#F7F8FA;border-radius:6px;padding:12px;font-size:13px;line-height:1.7;margin-bottom:12px}
+  .rc-body .preview .pv-label{font-size:11px;font-weight:600;color:#1677FF;margin-bottom:4px}
+  .rc-actions{display:flex;gap:8px}
+  .btn{padding:8px 18px;border-radius:6px;font-size:13px;cursor:pointer;border:none;font-weight:500}
+  .btn-pass{background:#52C41A;color:#fff}
+  .btn-fix{background:#fff;color:#1677FF;border:1px solid #1677FF}
+  .btn-pass:hover{background:#389E0D}
+  /* 修正区 */
+  .fix-area{display:none;margin-top:12px;padding:12px;background:#FFFBE6;border:1px solid #FFE58F;border-radius:6px}
+  .fix-area.show{display:block}
+  .fix-area label{font-size:12px;color:#595959;display:block;margin-bottom:6px}
+  .fix-area select,.fix-area textarea{width:100%;border:1px solid #E8E8E8;border-radius:4px;padding:8px;font-size:12px;margin-bottom:8px;outline:none}
+  .fix-area textarea{resize:vertical;min-height:50px}
+  /* 修正案例记录 */
+  .case-log{background:#fff;border-radius:8px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .case-log h3{font-size:13px;margin-bottom:10px;border-left:3px solid #FAAD14;padding-left:8px}
+  .case-item{background:#FAFAFA;border-radius:6px;padding:10px;margin-bottom:8px;font-size:12px;line-height:1.6}
+  .case-item .ci-label{font-size:10px;color:#8C8C8C;margin-bottom:2px}
+  .case-item .ci-orig{color:#FF4D4F;text-decoration:line-through}
+  .case-item .ci-fix{color:#52C41A;font-weight:500}
+  /* 送达率监控 */
+  .monitor{background:#fff;border-radius:8px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-top:14px}
+  .monitor h3{font-size:13px;margin-bottom:10px;border-left:3px solid #1677FF;padding-left:8px}
+  .m-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .m-item{text-align:center;background:#F7F8FA;border-radius:6px;padding:12px}
+  .m-item .mv{font-size:20px;font-weight:700}
+  .m-item .mn{font-size:11px;color:#8C8C8C;margin-top:2px}
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>📋 运营审核后台</h1>
+    <span class="date">2026-06-24（周二）· 日报审核</span>
+    <div class="progress">
+      <span>审核进度 26/32</span>
+      <div class="pbar"><i style="width:81%"></i></div>
+      <span style="color:#52C41A">81%</span>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- 左侧科室列表 -->
+    <div class="sidebar">
+      <div class="sb-head"><span>科室列表</span><span style="color:#FAAD14">待审6</span></div>
+      <div class="sb-tab">
+        <span class="active">全部</span>
+        <span>待审</span>
+        <span>已通过</span>
+        <span>已修正</span>
+      </div>
+      <div class="dept-item"><div><div class="dn">检验科</div><div class="ds passed">✓ 已通过</div></div></div>
+      <div class="dept-item"><div><div class="dn">影像科</div><div class="ds passed">✓ 已通过</div></div></div>
+      <div class="dept-item"><div><div class="dn">中心手术室</div><div class="ds fixed">✎ 已修正</div></div></div>
+      <div class="dept-item active"><div><div class="dn">呼吸内科</div><div class="ds pending">⏳ 待审核</div></div></div>
+      <div class="dept-item"><div><div class="dn">心内科</div><div class="ds pending">⏳ 待审核</div></div></div>
+      <div class="dept-item"><div><div class="dn">消化内科</div><div class="ds passed">✓ 已通过</div></div></div>
+      <div class="dept-item"><div><div class="dn">骨科</div><div class="ds passed">✓ 已通过</div></div></div>
+      <div class="dept-item"><div><div class="dn">ICU</div><div class="ds passed">✓ 已通过</div></div></div>
+      <div class="dept-item" style="color:#BFBFBF;text-align:center;justify-content:center;font-size:12px">... 共32个科室</div>
+    </div>
+
+    <!-- 右侧审核区 -->
+    <div class="main">
+      <div class="review-head">
+        <h2>呼吸内科 · 今日日报审核</h2>
+        <span class="meta">AI生成于 07:00 · 你正在审核</span>
+      </div>
+
+      <!-- NLG解读审核 -->
+      <div class="review-card">
+        <div class="rc-head"><span class="t">🤖 NLG解读</span><span class="status st-pending">待审核</span></div>
+        <div class="rc-body">
+          <div class="preview">
+            <div class="pv-label">📋 数据事实</div>
+            总用电 5,200 kWh · 空调 3,100 / 照明 800 / 设备 1,300 · 环比 +5.2% · 排名 5/32 ↑3
+          </div>
+          <div class="preview">
+            <div class="pv-label">🤖 AI分析</div>
+            较定额 +18% ⚠️。🟡可能性中等。推测原因：上周三夜间空调未关。依据：6/18 23:00-05:00 空调功率2.1kW vs 基线0.3kW。
+          </div>
+          <div class="rc-actions">
+            <button class="btn btn-pass" onclick="passNLG(this)">✓ 通过</button>
+            <button class="btn btn-fix" onclick="showFix('fixNLG')">✎ 修正</button>
+          </div>
+          <div class="fix-area" id="fixNLG">
+            <label>修正原因分类：</label>
+            <select><option>数据不对</option><option>原因分析不对</option><option>可靠性标签不当</option><option>表述看不懂</option><option>其他</option></select>
+            <label>修正后内容：</label>
+            <textarea placeholder="输入修正后的NLG解读文本..."></textarea>
+            <button class="btn btn-pass" onclick="saveFix(this,'fixNLG','NLG解读')">保存修正</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 根因分类审核 -->
+      <div class="review-card">
+        <div class="rc-head"><span class="t">🔍 异常根因分类</span><span class="status st-fix">已修正</span></div>
+        <div class="rc-body">
+          <div class="preview">
+            <div class="pv-label">AI原始分类</div>
+            <span style="color:#FF4D4F;text-decoration:line-through">🔧 设备类（COP下降）</span><br>
+            <div class="pv-label" style="margin-top:8px">修正后分类</div>
+            <span style="color:#52C41A;font-weight:600">👤 行为类（夜间空调未关）</span><br>
+            <span style="font-size:11px;color:#8C8C8C">修正原因：功率偏离非设备故障，系人为未关</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 碳排放审核 -->
+      <div class="review-card">
+        <div class="rc-head"><span class="t">🌍 碳排放计算</span><span class="status st-pending">待审核</span></div>
+        <div class="rc-body">
+          <div class="preview">
+            <div class="pv-label">碳排放数据</div>
+            总排放 42 tCO₂ · 电力 36(86%) / 天然气 6(14%) · 环比 -3.2%<br>
+            <span style="font-size:11px;color:#8C8C8C">排放因子：广东省电力 0.4419 tCO₂/MWh · 数据完整率 100%</span>
+          </div>
+          <div class="rc-actions">
+            <button class="btn btn-pass" onclick="passNLG(this)">✓ 通过</button>
+            <button class="btn btn-fix">✎ 修正</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 修正案例记录（自动入训练集） -->
+      <div class="case-log">
+        <h3>📝 今日修正案例记录（自动入训练集）</h3>
+        <div class="case-item">
+          <div class="ci-label">科室：中心手术室 · 类型：根因分类</div>
+          <div class="ci-label">AI原始输出：</div><span class="ci-orig">🔧 设备类（COP下降3.2%）</span><br>
+          <div class="ci-label">人工修正：</div><span class="ci-fix">🔧 设备类（冷塔风机故障致COP下降）</span><br>
+          <div class="ci-label">修正原因：需补充具体故障部件，便于设备科定位</div>
+        </div>
+        <div class="case-item">
+          <div class="ci-label">科室：检验科 · 类型：NLG解读</div>
+          <div class="ci-label">AI原始输出：</div><span class="ci-orig">用电较定额+8%，原因不明</span><br>
+          <div class="ci-label">人工修正：</div><span class="ci-fix">用电较定额+8%，主因本月标本量增加23%（业务合理增长）</span><br>
+          <div class="ci-label">修正原因：AI未关联HIS标本量数据，误判为异常</div>
+        </div>
+      </div>
+
+      <!-- 推送达率监控 -->
+      <div class="monitor">
+        <h3>📊 推送达率监控</h3>
+        <div class="m-grid">
+          <div class="m-item"><div class="mv" style="color:#52C41A">28</div><div class="mn">已读 / 32</div></div>
+          <div class="m-item"><div class="mv" style="color:#1677FF">87.5%</div><div class="mn">打开率</div></div>
+          <div class="m-item"><div class="mv" style="color:#FAAD14">4</div><div class="mn">未读（24h提醒）</div></div>
+          <div class="m-item"><div class="mv" style="color:#FF4D4F">2</div><div class="mn">👎反馈（待跟进）</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+<script>
+function passNLG(btn){const c=btn.closest('.review-card');c.querySelector('.status').className='status st-pass';c.querySelector('.status').textContent='✓ 已通过';c.querySelector('.rc-actions').innerHTML='<span style="color:#52C41A;font-size:13px">✓ 已通过，将随推送发送</span>'}
+function showFix(id){document.getElementById(id).classList.add('show')}
+function saveFix(btn,fixId,label){const c=btn.closest('.review-card');c.querySelector('.status').className='status st-fix';c.querySelector('.status').textContent='✎ 已修正';c.querySelector('.rc-actions').innerHTML='<span style="color:#1677FF;font-size:13px">✎ 已修正，修正案例已记录入训练集</span>';document.getElementById(fixId).classList.remove('show')}
+</script>
+</body>
+</html>

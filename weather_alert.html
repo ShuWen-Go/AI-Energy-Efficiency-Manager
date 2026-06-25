@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>极端天气预警 · AI能效管家</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#EDEDED;color:#1F1F1F;display:flex;justify-content:center;min-height:100vh}
+  .phone{width:375px;background:#F7F8FA;min-height:100vh;box-shadow:0 0 20px rgba(0,0,0,.08)}
+  .statusbar{height:36px;background:#fff;display:flex;justify-content:space-between;align-items:center;padding:0 16px;font-size:12px;font-weight:600}
+  .navbar{background:#fff;height:44px;display:flex;align-items:center;padding:0 12px;border-bottom:1px solid #E8E8E8;position:sticky;top:0;z-index:10}
+  .navbar .back{font-size:22px;color:#1677FF;cursor:pointer}
+  .navbar .title{flex:1;text-align:center;font-size:16px;font-weight:600}
+  .content{padding:12px}
+  /* 预警卡片 */
+  .alert-card{background:linear-gradient(135deg,#FF4D4F,#CF1322);color:#fff;border-radius:12px;padding:16px;margin-bottom:12px}
+  .alert-card .ac-level{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.25);padding:5px 12px;border-radius:14px;font-size:12px;font-weight:600;margin-bottom:10px}
+  .alert-card .ac-title{font-size:18px;font-weight:700;margin-bottom:6px}
+  .alert-card .ac-time{font-size:12px;opacity:.9}
+  /* 用电预测 */
+  .forecast{background:#fff;border-radius:10px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .forecast h4{font-size:14px;font-weight:600;margin-bottom:10px}
+  .fc-total{display:flex;align-items:baseline;gap:6px;margin-bottom:10px}
+  .fc-total .v{font-size:28px;font-weight:700;color:#FF4D4F}
+  .fc-total .u{font-size:13px;color:#8C8C8C}
+  .fc-total .cmp{font-size:12px;color:#FF4D4F;margin-left:8px;background:#FFF1F0;padding:2px 8px;border-radius:4px}
+  .fc-chart{height:80px;display:flex;align-items:flex-end;gap:3px;padding:8px 0;border-bottom:1px solid #F0F0F0;margin-bottom:8px}
+  .fc-bar{flex:1;background:linear-gradient(to top,#1677FF,#69B1FF);border-radius:2px 2px 0 0;position:relative;min-height:8px}
+  .fc-bar.peak{background:linear-gradient(to top,#FF4D4F,#FF7875)}
+  .fc-bar:hover::after{content:attr(data-v);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:9px;background:#1F1F1F;color:#fff;padding:2px 4px;border-radius:3px;white-space:nowrap}
+  .fc-axis{display:flex;justify-content:space-between;font-size:9px;color:#BFBFBF;padding:4px 0}
+  .fc-note{font-size:11px;color:#8C8C8C;margin-top:6px}
+  /* 建议卡片 */
+  .advice{background:#fff;border-radius:10px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .advice h4{font-size:14px;font-weight:600;margin-bottom:10px}
+  .adv-item{display:flex;gap:10px;margin-bottom:12px;font-size:13px;line-height:1.6}
+  .adv-item:last-child{margin-bottom:0}
+  .adv-num{width:22px;height:22px;background:#E6F4FF;color:#1677FF;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+  .adv-item .at{font-weight:600;margin-bottom:2px}
+  .adv-item .ad{font-size:12px;color:#595959}
+  /* 高危科室 */
+  .risk{background:#FFF7E6;border:1px solid #FFD591;border-radius:10px;padding:14px 16px;margin-bottom:12px}
+  .risk h4{font-size:14px;font-weight:600;margin-bottom:8px;color:#D46B08}
+  .risk-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #FFE58F;font-size:13px}
+  .risk-item:last-child{border:none}
+  .risk-item .rn{font-weight:500}
+  .risk-item .rt{font-size:11px;color:#D46B08}
+  /* 协同层 */
+  .synergy{background:#F0F5FF;border:1px solid #ADC6FF;border-radius:10px;padding:14px 16px;margin-bottom:12px}
+  .synergy h4{font-size:13px;font-weight:600;margin-bottom:8px;color:#0958D9}
+  .sy-flow{font-size:12px;line-height:1.8;color:#1F1F1F}
+  .sy-flow .step{display:inline-block;background:#fff;padding:2px 8px;border-radius:4px;margin:2px 0;border:1px solid #D6E4FF}
+  .sy-flow .arrow{color:#1677FF;margin:0 4px}
+  .sy-rule{font-size:11px;color:#0958D9;margin-top:8px;background:#E6F4FF;padding:6px 10px;border-radius:6px}
+  /* 按钮 */
+  .btn-confirm{width:100%;background:#1677FF;color:#fff;border:none;border-radius:8px;padding:13px;font-size:15px;cursor:pointer;font-weight:500;margin-top:4px}
+  .btn-confirm:active{background:#0958D9}
+  .footer-note{text-align:center;font-size:10px;color:#BFBFBF;margin-top:12px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="statusbar"><span>14:00</span><span>▮▮▮ 📶 🔋88%</span></div>
+  <div class="navbar">
+    <span class="back" onclick="history.back()">‹</span>
+    <span class="title">极端天气预警</span>
+  </div>
+  <div class="content">
+    <!-- 预警卡片 -->
+    <div class="alert-card">
+      <span class="ac-level">🔴 高温橙色预警</span>
+      <div class="ac-title">明日高温预警 · 提前24h</div>
+      <div class="ac-time">气象局发布 · 预计6/25 最高温38℃ · 持续3天</div>
+    </div>
+
+    <!-- 用电预测 -->
+    <div class="forecast">
+      <h4>📈 明日全院用电预测</h4>
+      <div class="fc-total">
+        <span class="v">12,800</span><span class="u">kWh</span>
+        <span class="cmp">较平日 +32%</span>
+      </div>
+      <div class="fc-chart">
+        <div class="fc-bar" data-v="380" style="height:30%"></div>
+        <div class="fc-bar" data-v="360" style="height:28%"></div>
+        <div class="fc-bar" data-v="520" style="height:40%"></div>
+        <div class="fc-bar" data-v="680" style="height:52%"></div>
+        <div class="fc-bar peak" data-v="920" style="height:70%"></div>
+        <div class="fc-bar peak" data-v="1050" style="height:80%"></div>
+        <div class="fc-bar peak" data-v="1120" style="height:86%"></div>
+        <div class="fc-bar peak" data-v="980" style="height:75%"></div>
+        <div class="fc-bar" data-v="720" style="height:55%"></div>
+        <div class="fc-bar" data-v="580" style="height:44%"></div>
+        <div class="fc-bar" data-v="480" style="height:36%"></div>
+        <div class="fc-bar" data-v="420" style="height:32%"></div>
+      </div>
+      <div class="fc-axis"><span>0时</span><span>6时</span><span>12时</span><span>18时</span><span>24时</span></div>
+      <div class="fc-note">⏰ 峰值时段 11:00-15:00 · 预测基于天气+历史负荷+工作日特征</div>
+    </div>
+
+    <!-- 空调运行建议 -->
+    <div class="advice">
+      <h4>❄️ 空调运行建议</h4>
+      <div class="adv-item">
+        <div class="adv-num">1</div>
+        <div><div class="at">提前1小时启动预冷</div><div class="ad">明日10:00启动空调，利用谷电时段降低峰值负荷</div></div>
+      </div>
+      <div class="adv-item">
+        <div class="adv-num">2</div>
+        <div><div class="at">设定温度不低于26℃</div><div class="ad">每调低1℃能耗增加8-10%，26℃兼顾舒适与节能</div></div>
+      </div>
+      <div class="adv-item">
+        <div class="adv-num">3</div>
+        <div><div class="at">非关键区域错峰运行</div><div class="ad">办公区/候诊区12-14时轮换关停1台主机</div></div>
+      </div>
+      <div class="adv-item">
+        <div class="adv-num">4</div>
+        <div><div class="at">冷水机组满载优先</div><div class="ad">优先运行COP最高的主机，避免多台低负载并联</div></div>
+      </div>
+    </div>
+
+    <!-- 高危科室提醒 -->
+    <div class="risk">
+      <h4>⚠️ 高危科室提醒</h4>
+      <div class="risk-item"><span class="rn">🏥 中心手术室</span><span class="rt">检查备用电源 · 确认UPS容量</span></div>
+      <div class="risk-item"><span class="rn">🏥 ICU</span><span class="rt">恒温恒湿系统 · 确认制冷冗余</span></div>
+      <div class="risk-item"><span class="rn">🏥 检验科</span><span class="rt">冷链设备 · 确认应急制冷</span></div>
+      <div class="risk-item"><span class="rn">🏥 信息中心</span><span class="rt">机房精密空调 · 确认双路供电</span></div>
+    </div>
+
+    <!-- 协同层触发示意 -->
+    <div class="synergy">
+      <h4>🔗 协同层 · 规则4 自动触发</h4>
+      <div class="sy-flow">
+        <span class="step">气象局预警</span><span class="arrow">→</span>
+        <span class="step">负荷预测72h</span><span class="arrow">→</span>
+        <span class="step">协同规则引擎</span><span class="arrow">→</span>
+        <span class="step">生成预警方案</span><span class="arrow">→</span>
+        <span class="step">推送全院</span>
+      </div>
+      <div class="sy-rule">⚙️ 规则4：负荷预测72h极端天气 → 预警 → 推送医院。本预警由AI能效管家与节能智能体协同生成。</div>
+    </div>
+
+    <button class="btn-confirm" onclick="this.textContent='✓ 已确认收到';this.style.background='#52C41A'">✓ 确认收到预警</button>
+
+    <div class="footer-note">
+      本预警提前24h推送 · 托管公司在帮您提前准备<br>
+      AI能效管家 · 极端天气预警功能（V1.0）
+    </div>
+  </div>
+</div>
+</body>
+</html>
