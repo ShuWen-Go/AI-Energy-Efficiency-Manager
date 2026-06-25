@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>科室排名 · AI能效管家</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#EDEDED;color:#1F1F1F;display:flex;justify-content:center;min-height:100vh}
+  .phone{width:375px;background:#F7F8FA;min-height:100vh;box-shadow:0 0 20px rgba(0,0,0,.08)}
+  .statusbar{height:36px;background:#fff;display:flex;justify-content:space-between;align-items:center;padding:0 16px;font-size:12px;font-weight:600}
+  .navbar{background:#fff;height:44px;display:flex;align-items:center;padding:0 12px;border-bottom:1px solid #E8E8E8;position:sticky;top:0;z-index:10}
+  .navbar .back{font-size:22px;color:#1677FF;cursor:pointer}
+  .navbar .title{flex:1;text-align:center;font-size:16px;font-weight:600}
+  .content{padding:12px}
+  /* 我的排名概览 */
+  .my-card{background:linear-gradient(135deg,#1677FF,#0958D9);color:#fff;border-radius:12px;padding:16px;margin-bottom:12px}
+  .my-card .mc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+  .my-card .mc-dept{font-size:14px;opacity:.9}
+  .my-card .mc-rank{font-size:32px;font-weight:700;line-height:1}
+  .my-card .mc-rank small{font-size:14px;font-weight:400;opacity:.8}
+  .my-card .mc-change{font-size:12px;background:rgba(255,255,255,.2);padding:3px 8px;border-radius:10px}
+  .budget{display:flex;justify-content:space-between;font-size:11px;opacity:.9;margin-bottom:6px}
+  .budget-bar{height:8px;background:rgba(255,255,255,.25);border-radius:4px;overflow:hidden}
+  .budget-bar i{display:block;height:100%;background:#FFD666;border-radius:4px}
+  .budget-info{display:flex;justify-content:space-between;font-size:11px;margin-top:6px;opacity:.85}
+  /* 筛选 */
+  .filter{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px}
+  .f-btn{font-size:12px;padding:5px 12px;border-radius:14px;background:#fff;border:1px solid #E8E8E8;cursor:pointer;white-space:nowrap;color:#595959}
+  .f-btn.active{background:#1677FF;color:#fff;border-color:#1677FF}
+  /* 排名列表 */
+  .rank-card{background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}
+  .rank-head{display:grid;grid-template-columns:40px 1fr 80px 50px;padding:10px 12px;font-size:11px;color:#8C8C8C;border-bottom:1px solid #F0F0F0;background:#FAFAFA}
+  .rank-item{display:grid;grid-template-columns:40px 1fr 80px 50px;padding:11px 12px;font-size:13px;align-items:center;border-bottom:1px solid #F5F5F5}
+  .rank-item:last-child{border-bottom:none}
+  .rank-item.me{background:#E6F4FF;margin:0 -12px;padding:11px 12px;border-left:3px solid #1677FF}
+  .r-num{font-weight:700;font-size:14px}
+  .r-num.top1{color:#FF4D4F}
+  .r-num.top2{color:#FA8C16}
+  .r-num.top3{color:#FAAD14}
+  .r-name{font-weight:500}
+  .r-name.me{color:#1677FF;font-weight:600}
+  .r-kwh{font-size:12px;color:#595959;text-align:right}
+  .r-change{text-align:center;font-size:12px}
+  .r-change.up{color:#FF4D4F}
+  .r-change.down{color:#52C41A}
+  .r-change.same{color:#BFBFBF}
+  .quota-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-left:4px}
+  /* 分项 */
+  .sub-card{background:#fff;border-radius:10px;padding:14px;margin-top:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .sub-card h4{font-size:13px;font-weight:600;margin-bottom:10px}
+  .sub-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px;border-bottom:1px solid #F5F5F5}
+  .sub-row:last-child{border:none}
+  .sub-row .sk{color:#8C8C8C}
+  .sub-row .sv{font-weight:600}
+  .sub-row .sv.good{color:#52C41A}
+  .sub-row .sv.bad{color:#FF4D4F}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="statusbar"><span>8:38</span><span>▮▮▮ 📶 🔋92%</span></div>
+  <div class="navbar">
+    <span class="back" onclick="history.back()">‹</span>
+    <span class="title">科室排名</span>
+  </div>
+  <div class="content">
+    <!-- 我的排名概览 -->
+    <div class="my-card">
+      <div class="mc-top">
+        <div>
+          <div class="mc-dept">呼吸内科 · 本周排名</div>
+          <div class="mc-rank">5<small>/32 位</small></div>
+        </div>
+        <span class="mc-change">↑ 较上周升3位</span>
+      </div>
+      <div class="budget"><span>预算执行率</span><span>78%</span></div>
+      <div class="budget-bar"><i style="width:78%"></i></div>
+      <div class="budget-info"><span>已用 3,420 / 4,400 kWh</span><span style="color:#FFD666">⚠️ 距月末预计达标</span></div>
+    </div>
+
+    <!-- 筛选 -->
+    <div class="filter">
+      <div class="f-btn active" onclick="filt(this)">全部</div>
+      <div class="f-btn" onclick="filt(this)">内科系列</div>
+      <div class="f-btn" onclick="filt(this)">外科系列</div>
+      <div class="f-btn" onclick="filt(this)">医技科室</div>
+      <div class="f-btn" onclick="filt(this)">重症科室</div>
+    </div>
+
+    <!-- 排名列表 -->
+    <div class="rank-card">
+      <div class="rank-head"><span>排名</span><span>科室</span><span style="text-align:right">用电(kWh)</span><span style="text-align:center">变化</span></div>
+      <div class="rank-item"><span class="r-num top1">1</span><span class="r-name">检验科</span><span class="r-kwh">8,920</span><span class="r-change up">↑2</span></div>
+      <div class="rank-item"><span class="r-num top2">2</span><span class="r-name">影像科</span><span class="r-kwh">7,640</span><span class="r-change same">—</span></div>
+      <div class="rank-item"><span class="r-num top3">3</span><span class="r-name">中心手术室</span><span class="r-kwh">6,810</span><span class="r-change down">↓1</span></div>
+      <div class="rank-item"><span class="r-num">4</span><span class="r-name">ICU</span><span class="r-kwh">5,980</span><span class="r-change same">—</span></div>
+      <div class="rank-item me"><span class="r-num">5</span><span class="r-name me">呼吸内科（我）</span><span class="r-kwh" style="color:#1677FF;font-weight:600">5,200</span><span class="r-change up">↑3</span></div>
+      <div class="rank-item"><span class="r-num">6</span><span class="r-name">心内科</span><span class="r-kwh">5,010</span><span class="r-change down">↓1</span></div>
+      <div class="rank-item"><span class="r-num">7</span><span class="r-name">消化内科</span><span class="r-kwh">4,760</span><span class="r-change up">↑1</span></div>
+      <div class="rank-item"><span class="r-num">8</span><span class="r-name">骨科</span><span class="r-kwh">4,520</span><span class="r-change same">—</span></div>
+      <div class="rank-item"><span class="r-num">9</span><span class="r-name">神经外科</span><span class="r-kwh">4,380</span><span class="r-change down">↓2</span></div>
+      <div class="rank-item"><span class="r-num">10</span><span class="r-name">妇产科</span><span class="r-kwh">4,150</span><span class="r-change up">↑1</span></div>
+      <div class="rank-item" style="color:#BFBFBF;text-align:center;justify-content:center;font-size:12px;grid-template-columns:1fr">... 共32个科室 · 下滑查看更多</div>
+    </div>
+
+    <!-- 本科室分项分析 -->
+    <div class="sub-card">
+      <h4>📊 呼吸内科分项表现</h4>
+      <div class="sub-row"><span class="sk">空调用电</span><span class="sv bad">3,100 kWh · 较基线 +12% ⚠️</span></div>
+      <div class="sub-row"><span class="sk">照明用电</span><span class="sv good">800 kWh · 较基线 -3% ✓</span></div>
+      <div class="sub-row"><span class="sk">设备用电</span><span class="sv">1,300 kWh · 持平</span></div>
+      <div class="sub-row"><span class="sk">最优分项</span><span class="sv good">照明（节约25 kWh）</span></div>
+      <div class="sub-row"><span class="sk">待改进分项</span><span class="sv bad">空调（超用331 kWh）</span></div>
+    </div>
+  </div>
+</div>
+<script>
+function filt(el){document.querySelectorAll('.f-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active')}
+</script>
+</body>
+</html>

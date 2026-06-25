@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模板查询 · AI能效管家</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#EDEDED;color:#1F1F1F;display:flex;justify-content:center;min-height:100vh}
+  .phone{width:375px;background:#F7F8FA;min-height:100vh;box-shadow:0 0 20px rgba(0,0,0,.08)}
+  .statusbar{height:36px;background:#fff;display:flex;justify-content:space-between;align-items:center;padding:0 16px;font-size:12px;font-weight:600}
+  .navbar{background:#fff;height:44px;display:flex;align-items:center;padding:0 12px;border-bottom:1px solid #E8E8E8;position:sticky;top:0;z-index:10}
+  .navbar .back{font-size:22px;color:#1677FF;cursor:pointer}
+  .navbar .title{flex:1;text-align:center;font-size:16px;font-weight:600}
+  .content{padding:12px}
+  .ctx-bar{background:#E6F4FF;border-radius:8px;padding:10px 12px;font-size:12px;color:#1677FF;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+  .section-title{font-size:13px;font-weight:600;color:#595959;margin:4px 0 10px;padding-left:4px}
+  /* 6类模板 */
+  .cat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+  .cat{background:#fff;border-radius:10px;padding:14px 6px;text-align:center;cursor:pointer;border:2px solid transparent;transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .cat:hover{border-color:#ADC6FF}
+  .cat.active{border-color:#1677FF;background:#F0F5FF}
+  .cat .ic{font-size:24px;display:block;margin-bottom:4px}
+  .cat .n{font-size:12px;font-weight:500;color:#1F1F1F}
+  .cat .c{font-size:10px;color:#8C8C8C;margin-top:2px}
+  /* 模板列表 */
+  .tpl-list{display:none;margin-bottom:16px}
+  .tpl-list.show{display:block}
+  .tpl-item{background:#fff;border-radius:8px;padding:12px 14px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border:1px solid transparent;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .tpl-item:hover{border-color:#ADC6FF}
+  .tpl-item.active{border-color:#1677FF;background:#F0F5FF}
+  .tpl-item .tn{font-size:13px;font-weight:500}
+  .tpl-item .td{font-size:11px;color:#8C8C8C;margin-top:2px}
+  .tpl-item .arrow{color:#BFBFBF;font-size:14px}
+  /* 参数填写 */
+  .params{display:none;background:#fff;border-radius:10px;padding:14px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .params.show{display:block}
+  .param-row{margin-bottom:12px}
+  .param-row label{font-size:12px;color:#595959;display:block;margin-bottom:6px}
+  .param-row select,.param-row input{width:100%;border:1px solid #E8E8E8;border-radius:6px;padding:9px 10px;font-size:13px;outline:none;background:#fff}
+  .param-row select:focus,.param-row input:focus{border-color:#1677FF}
+  .param-row .filled{background:#F0F5FF;color:#1677FF}
+  .btn-query{width:100%;background:#1677FF;color:#fff;border:none;border-radius:8px;padding:12px;font-size:14px;cursor:pointer;font-weight:500}
+  .btn-query:hover{background:#0958D9}
+  .btn-query:disabled{background:#BFBFBF}
+  /* 结果 */
+  .result{display:none;background:#fff;border-radius:10px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .result.show{display:block}
+  .result h4{font-size:14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+  .result .r-tag{font-size:10px;color:#52C41A;background:#F6FFED;padding:2px 6px;border-radius:4px}
+  .r-card{background:#F7F8FA;border-radius:8px;padding:12px;margin-bottom:8px}
+  .r-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0}
+  .r-row .k{color:#8C8C8C}
+  .r-row .v{font-weight:600}
+  .r-row .v.up{color:#FF4D4F}
+  .r-row .v.down{color:#52C41A}
+  .r-bar-wrap{margin:6px 0}
+  .r-bar{display:flex;height:18px;border-radius:4px;overflow:hidden}
+  .r-bar i{display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff}
+  .r-legend{display:flex;gap:12px;font-size:11px;color:#8C8C8C;margin-top:6px}
+  .r-legend span{display:flex;align-items:center;gap:4px}
+  .r-legend i{width:8px;height:8px;border-radius:2px;display:inline-block}
+  /* 冷启动引导 */
+  .cold-tip{background:#FFF7E6;border:1px solid #FFE58F;border-radius:8px;padding:12px;margin-top:16px;text-align:center}
+  .cold-tip .ct-t{font-size:13px;font-weight:600;margin-bottom:4px}
+  .cold-tip .ct-d{font-size:11px;color:#8C8C8C;line-height:1.6}
+  .cold-tip .ct-btn{display:inline-block;background:#fff;border:1px solid #FAAD14;color:#D48806;border-radius:6px;padding:6px 14px;font-size:12px;cursor:pointer;margin-top:8px}
+  .disclaimer{text-align:center;font-size:10px;color:#BFBFBF;margin-top:12px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="statusbar"><span>8:35</span><span>▮▮▮ 📶 🔋92%</span></div>
+  <div class="navbar">
+    <span class="back" onclick="location.href='ai_advisor.html'">‹</span>
+    <span class="title">模板查询</span>
+  </div>
+  <div class="content">
+    <div class="ctx-bar">📌 当前科室：呼吸内科 · 选择模板快速查询</div>
+
+    <div class="section-title">选择查询类型</div>
+    <div class="cat-grid">
+      <div class="cat active" onclick="selectCat(this,'elec')"><span class="ic">📊</span><div class="n">用电查询</div><div class="c">5个模板</div></div>
+      <div class="cat" onclick="selectCat(this,'anomaly')"><span class="ic">🔍</span><div class="n">异常查询</div><div class="c">5个模板</div></div>
+      <div class="cat" onclick="selectCat(this,'rank')"><span class="ic">🏆</span><div class="n">排名查询</div><div class="c">4个模板</div></div>
+      <div class="cat" onclick="selectCat(this,'trend')"><span class="ic">📈</span><div class="n">趋势查询</div><div class="c">4个模板</div></div>
+      <div class="cat" onclick="selectCat(this,'quota')"><span class="ic">📏</span><div class="n">定额查询</div><div class="c">4个模板</div></div>
+      <div class="cat" onclick="selectCat(this,'carbon')"><span class="ic">🌍</span><div class="n">碳排放查询</div><div class="c">4个模板</div></div>
+    </div>
+
+    <!-- 模板列表 -->
+    <div class="tpl-list show" id="tpl-elec">
+      <div class="section-title">用电查询模板</div>
+      <div class="tpl-item active" onclick="selectTpl(this,1)"><div><div class="tn">本周用电量</div><div class="td">总用电+分项+日均+较上月变化</div></div><span class="arrow">›</span></div>
+      <div class="tpl-item" onclick="selectTpl(this,2)"><div><div class="tn">本月用电量</div><div class="td">月度汇总+日趋势+峰值时段</div></div><span class="arrow">›</span></div>
+      <div class="tpl-item" onclick="selectTpl(this,3)"><div><div class="tn">指定日期用电</div><div class="td">某天逐时用电曲线</div></div><span class="arrow">›</span></div>
+      <div class="tpl-item" onclick="selectTpl(this,4)"><div><div class="tn">空调用电占比</div><div class="td">空调分项+占比+较基线偏差</div></div><span class="arrow">›</span></div>
+      <div class="tpl-item" onclick="selectTpl(this,5)"><div><div class="tn">非工作时段用电</div><div class="td">夜间/周末用电+占比</div></div><span class="arrow">›</span></div>
+    </div>
+
+    <!-- 参数 -->
+    <div class="params show" id="params">
+      <div class="section-title">填写查询参数</div>
+      <div class="param-row">
+        <label>科室</label>
+        <input type="text" class="filled" value="呼吸内科" readonly>
+      </div>
+      <div class="param-row">
+        <label>时间范围</label>
+        <select>
+          <option>本周（6.16-6.22）</option>
+          <option>本月（6月）</option>
+          <option>上月（5月）</option>
+          <option>昨天（6.23）</option>
+        </select>
+      </div>
+      <button class="btn-query" onclick="runQuery()">🔍 查询</button>
+    </div>
+
+    <!-- 结果 -->
+    <div class="result" id="result">
+      <h4>查询结果 <span class="r-tag">✓ 模板查询 · 准确率100%</span></h4>
+      <div class="r-card">
+        <div class="r-row"><span class="k">科室</span><span class="v">呼吸内科</span></div>
+        <div class="r-row"><span class="k">时间范围</span><span class="v">6.16-6.22（本周）</span></div>
+        <div class="r-row"><span class="k">总用电</span><span class="v">5,200 kWh</span></div>
+        <div class="r-row"><span class="k">日均</span><span class="v">743 kWh</span></div>
+        <div class="r-row"><span class="k">较上月</span><span class="v up">+5.2%</span></div>
+      </div>
+      <div class="r-card">
+        <div class="r-row"><span class="k">分项用电</span><span class="v"></span></div>
+        <div class="r-bar-wrap">
+          <div class="r-bar">
+            <i style="background:#1677FF;width:60%">空调 60%</i>
+            <i style="background:#52C41A;width:15%">照明 15%</i>
+            <i style="background:#FAAD14;width:25%">设备 25%</i>
+          </div>
+        </div>
+        <div class="r-legend">
+          <span><i style="background:#1677FF"></i>空调 3,100 kWh</span>
+          <span><i style="background:#52C41A"></i>照明 800 kWh</span>
+          <span><i style="background:#FAAD14"></i>设备 1,300 kWh</span>
+        </div>
+      </div>
+      <div class="r-card">
+        <div class="r-row"><span class="k">空调较基线</span><span class="v up">+12%（+331 kWh）</span></div>
+        <div class="r-row"><span class="k">照明较基线</span><span class="v down">-3%（-25 kWh）</span></div>
+        <div class="r-row"><span class="k">设备较基线</span><span class="v">持平</span></div>
+      </div>
+
+      <!-- 冷启动引导（关键设计：收集NL2SQL训练数据） -->
+      <div class="cold-tip">
+        <div class="ct-t">💡 没有找到你想要的？</div>
+        <div class="ct-d">试试直接输入你的问题，AI会尝试理解<br>（你的输入将帮助AI学会回答更多问题）</div>
+        <div class="ct-btn" onclick="location.href='ai_advisor.html'">✍️ 直接问AI</div>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      本查询基于预审SQL执行，准确率100% · 数据来源：PMS电表系统<br>
+      AI能效管家 · V1.5 模板查询（>99%准确率）
+    </div>
+  </div>
+</div>
+
+<script>
+const tplMap={elec:'tpl-elec'};
+function selectCat(el,cat){
+  document.querySelectorAll('.cat').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  // 简化：只展示用电模板列表（其他类同理）
+  document.querySelectorAll('.tpl-list').forEach(l=>l.classList.remove('show'));
+  const list=document.getElementById('tpl-elec');
+  if(cat==='elec'){list.classList.add('show');list.querySelector('.section-title').textContent='用电查询模板';  }
+  else{
+    list.classList.add('show');
+    const titles={anomaly:'异常查询模板',rank:'排名查询模板',trend:'趋势查询模板',quota:'定额查询模板',carbon:'碳排放查询模板'};
+    list.querySelector('.section-title').textContent=titles[cat]||'查询模板';
+  }
+}
+function selectTpl(el,n){
+  document.querySelectorAll('.tpl-item').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+function runQuery(){
+  document.getElementById('result').classList.add('show');
+  document.getElementById('result').scrollIntoView({behavior:'smooth'});
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI能效管家 · 交互原型</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#F0F2F5;color:#1F1F1F;line-height:1.5}
+  /* 顶部 */
+  .header{background:linear-gradient(135deg,#1677FF 0%,#0958D9 100%);color:#fff;padding:40px 24px 32px}
+  .header h1{font-size:28px;font-weight:600;letter-spacing:.5px}
+  .header .sub{margin-top:8px;font-size:14px;opacity:.85}
+  .header .meta{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+  .tag{display:inline-block;padding:4px 10px;border-radius:4px;font-size:12px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.25)}
+  /* 介绍条 */
+  .intro{background:#fff;border-bottom:1px solid #E8E8E8;padding:14px 24px;font-size:13px;color:#595959}
+  .intro b{color:#1677FF}
+  /* 卡片网格 */
+  .grid{max-width:1080px;margin:24px auto;padding:0 24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+  .card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:transform .15s,box-shadow .15s;cursor:pointer;text-decoration:none;color:inherit;display:flex;flex-direction:column}
+  .card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(22,119,255,.15)}
+  .card-preview{height:140px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+  .card-preview.p1{background:linear-gradient(135deg,#E6F4FF,#F0F7FF)}
+  .card-preview.p2{background:linear-gradient(135deg,#F6FFED,#FCFFE6)}
+  .card-preview.p3{background:linear-gradient(135deg,#FFF7E6,#FFF1F0)}
+  .card-preview.p4{background:linear-gradient(135deg,#FFF1F0,#FFF0F6)}
+  .card-preview.p5{background:linear-gradient(135deg,#F0F5FF,#E6F4FF)}
+  .card-preview.p6{background:linear-gradient(135deg,#F5F5F5,#FAFAFA)}
+  .card-preview.p7{background:linear-gradient(135deg,#FFFBE6,#FFF7E6)}
+  .num{position:absolute;top:10px;left:12px;font-size:36px;font-weight:800;color:rgba(22,119,255,.12)}
+  .mini-card{background:#fff;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,.08);padding:8px;width:180px;font-size:9px}
+  .mini-card .mc-row{display:flex;justify-content:space-between;margin:2px 0;color:#595959}
+  .mini-card .mc-bar{height:4px;border-radius:2px;margin:3px 0}
+  .mini-card .mc-tag{display:inline-block;padding:1px 5px;border-radius:3px;font-size:8px;color:#fff}
+  .card-body{padding:16px 18px;flex:1}
+  .card-body h3{font-size:16px;font-weight:600;margin-bottom:6px}
+  .card-body .desc{font-size:13px;color:#8C8C8C;line-height:1.6}
+  .card-foot{padding:0 18px 16px;display:flex;justify-content:space-between;align-items:center}
+  .role-badge{font-size:11px;color:#1677FF;background:#E6F4FF;padding:3px 8px;border-radius:10px}
+  .enter-btn{font-size:12px;color:#1677FF;font-weight:500}
+  /* 底部规范 */
+  .spec{max-width:1080px;margin:8px auto 40px;padding:0 24px}
+  .spec-box{background:#fff;border-radius:12px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .spec-box h4{font-size:14px;color:#1F1F1F;margin-bottom:14px;border-left:3px solid #1677FF;padding-left:10px}
+  .spec-row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px}
+  .color-chip{display:flex;align-items:center;gap:8px;font-size:12px;color:#595959}
+  .color-dot{width:24px;height:24px;border-radius:4px;border:1px solid rgba(0,0,0,.08)}
+  .spec-note{font-size:12px;color:#8C8C8C;line-height:1.7}
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>🌿 AI能效管家</h1>
+    <div class="sub">面向三甲医院能源托管场景的AI能耗管理产品 · 从0到1落地交互原型</div>
+    <div class="meta">
+      <span class="tag">企业微信推送报告</span>
+      <span class="tag">对话AI顾问</span>
+      <span class="tag">管理移动端嵌入</span>
+      <span class="tag">第1轮交付</span>
+    </div>
+  </div>
+
+  <div class="intro">
+    本原型覆盖 <b>4类用户角色 × 7个核心场景</b>。每个场景可独立体验，按钮均可点击跳转。建议从「企微周报卡片」开始，沿"信任弧"路径体验完整闭环。
+  </div>
+
+  <div class="grid">
+    <!-- 场景1 周报卡片 -->
+    <a class="card" href="weekly_report.html">
+      <div class="card-preview p1">
+        <span class="num">01</span>
+        <div class="mini-card">
+          <div style="font-weight:600;font-size:10px;color:#1677FF">📋 数据事实</div>
+          <div class="mc-row"><span>总用电</span><span>5,200 kWh</span></div>
+          <div class="mc-row"><span>空调</span><span>3,100</span></div>
+          <div class="mc-bar" style="background:#1677FF;width:60%"></div>
+          <div style="margin-top:4px;font-weight:600;font-size:10px;color:#FAAD14">🤖 AI分析</div>
+          <div class="mc-row"><span>较定额</span><span style="color:#FF4D4F">+18%</span></div>
+          <span class="mc-tag" style="background:#FAAD14">🟡可能性中等</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>企微周报卡片</h3>
+        <div class="desc">NLG可信三层结构：数据事实 / AI分析 / 根因推测。科室主任周一8:30收到的核心触点。</div>
+      </div>
+      <div class="card-foot">
+        <span class="role-badge">科室主任</span>
+        <span class="enter-btn">查看原型 →</span>
+      </div>
+    </a>
+
+    <!-- 场景2 AI顾问对话 -->
+    <a class="card" href="ai_advisor.html">
+      <div class="card-preview p2">
+        <span class="num">02</span>
+        <div class="mini-card" style="text-align:center">
+          <div style="background:#F0F7FF;padding:6px;border-radius:6px;margin-bottom:4px;font-size:9px">👋 你好，我是AI能效管家</div>
+          <div style="background:#E6F4FF;padding:5px;border-radius:6px;margin-bottom:3px;font-size:8px">📊 用电量本周</div>
+          <div style="background:#E6F4FF;padding:5px;border-radius:6px;margin-bottom:3px;font-size:8px">🔍 查异常本周</div>
+          <div style="background:#E6F4FF;padding:5px;border-radius:6px;font-size:8px">🏆 看排名</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>AI顾问对话</h3>
+        <div class="desc">能力边界声明 + 模板引导 + 上下文追问 + 降级引导。从周报点击进入携带上下文。</div>
+      </div>
+      <div class="card-foot">
+        <span class="role-badge">科室主任 / 护士长</span>
+        <span class="enter-btn">查看原型 →</span>
+      </div>
+    </a>
+
+    <!-- 场景3 模板查询 -->
+    <a class="card" href="template_query.html">
+      <div class="card-preview p3">
+        <span class="num">03</span>
+        <div class="mini-card">
+          <div style="font-weight:600;font-size:10px;margin-bottom:4px">选择查询模板</div>
+          <div class="mc-row"><span>📊 用电查询</span><span class="mc-tag" style="background:#1677FF">5</span></div>
+          <div class="mc-row"><span>🔍 异常查询</span><span class="mc-tag" style="background:#1677FF">5</span></div>
+          <div class="mc-row"><span>🏆 排名查询</span><span class="mc-tag" style="background:#1677FF">4</span></div>
+          <div class="mc-row"><span>📈 趋势查询</span><span class="mc-tag" style="background:#1677FF">4</span></div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>模板查询选择</h3>
+        <div class="desc">V1.5预置20-30个模板，6类查询。用户选模板+填参数→预审SQL，准确率>99%。</div>
+      </div>
+      <div class="card-foot">
+        <span class="role-badge">科室主任</span>
+        <span class="enter-btn">查看原型 →</span>
+      </div>
+    </a>
+
+    <!-- 场景4 异常根因 -->
+    <a class="card" href="anomaly_detail.html">
+      <div class="card-preview p4">
+        <span class="num">04</span>
+        <div class="mini-card">
+          <span class="mc-tag" style="background:#FF4D4F">👤 行为类</span>
+          <div style="margin-top:4px;font-size:9px;font-weight:600">夜间空调未关</div>
+          <div class="mc-row" style="margin-top:4px"><span>优先级</span><span style="color:#FAAD14">🟡 中</span></div>
+          <div class="mc-row"><span>责任人</span><span>科室主任</span></div>
+          <div class="mc-row"><span>状态</span><span style="color:#1677FF">待处理</span></div>
+          <div style="margin-top:4px;background:#1677FF;color:#fff;text-align:center;padding:3px;border-radius:4px;font-size:9px">创建工单</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>异常详情 + 根因</h3>
+        <div class="desc">异常五分类标签 + 根因推测（可靠性+证据+数据来源）+ 工单创建 + 状态追踪。</div>
+      </div>
+      <div class="card-foot">
+        <span class="role-badge">后勤科长 / 科室主任</span>
+        <span class="enter-btn">查看原型 →</span>
+      </div>
+    </a>
+
+    <!-- 场景5 科室排名 -->
+    <a class="card" href="dept_ranking.html">
+      <div class="card-preview p5">
+        <span class="num">05</span>
+        <div class="mini-card">
+          <div class="mc-row"><span style="font-weight:600">排名</span><span style="font-weight:600">科室</span><span style="font-weight:600">用电</span></div>
+          <div class="mc-row"><span style="color:#FF4D4F">1</span><span>检验科</span><span>8,920</span></div>
+          <div class="mc-row"><span style="color:#FAAD14">2</span><span>影像科</span><span>7,640</span></div>
+          <div class="mc-row" style="background:#E6F4FF;margin:0 -4px;padding:1px 4px;border-radius:3px"><span style="color:#1677FF">5 ↑3</span><span style="color:#1677FF;font-weight:600">呼吸内科</span><span style="color:#1677FF">5,200</span></div>
+          <div class="mc-row"><span>6</span><span>心内科</span><span>5,010</span></div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>科室排名看板</h3>
+        <div class="desc">全院32科室排名 + 本科室高亮 + 环比变化 + 最好/最差分项 + 预算执行率仪表盘。</div>
+      </div>
+      <div class="card-foot">
+        <span class="role-badge">院长 / 科室主任</span>
+        <span class="enter-btn">查看原型 →</span>
+      </div>
+    </a>
+
+    <!-- 场景6 运营审核后台 -->
+    <a class="card" href="ops_review.html">
+      <div class="card-preview p6">
+        <span class="num">06</span>
+        <div class="mini-card" style="width:200px">
+          <div style="font-weight:600;font-size:10px;margin-bottom:4px">📋 日报审核 · 6/24</div>
+          <div class="mc-row"><span>NLG解读</span><span style="color:#52C41A">✓ 通过</span></div>
+          <div class="mc-row"><span>根因分类</span><span style="color:#FAAD14">✎ 修正</span></div>
+          <div class="mc-row"><span>碳排放</span><span style="color:#52C41A">✓ 通过</span></div>
+          <div style="margin-top:4px;background:#52C41A;color:#fff;text-align:center;padding:3px;border-radius:4px;font-size:9px">审核完成 · 推送</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>运营审核后台</h3>
+        <div class="desc">日报预览 + 通过/修正 + NLG驳回原因分类 + 修正案例记录 + 推送达率监控（宽屏布局）。</div>
+      </div>
+      <div class="card-foot">
+        <span class="role-badge">后勤科长（运营经理）</span>
+        <span class="enter-btn">查看原型 →</span>
+      </div>
+    </a>
+
+    <!-- 场景7 极端天气预警 -->
+    <a class="card" href="weather_alert.html">
+      <div class="card-preview p7">
+        <span class="num">07</span>
+        <div class="mini-card" style="text-align:center">
+          <span class="mc-tag" style="background:#FF4D4F;font-size:9px">🔴 高温橙色预警</span>
+          <div style="margin-top:5px;font-size:9px">明日全院用电预测</div>
+          <div style="font-size:14px;font-weight:700;color:#FF4D4F">12,800 kWh</div>
+          <div class="mc-bar" style="background:#FF4D4F;width:90%;margin:4px auto"></div>
+          <div style="font-size:8px;color:#8C8C8C">较平日 +32%</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3>极端天气预警</h3>
+        <div class="desc">预警等级 + 全院用电预测 + 空调运行建议 + 高危科室提醒 + 协同层规则4触发示意。</div>
+      </div>
+      <div class="card-foot">
+        <span class="role-badge">全角色</span>
+        <span class="enter-btn">查看原型 →</span>
+      </div>
+    </a>
+  </div>
+
+  <!-- 视觉规范 -->
+  <div class="spec">
+    <div class="spec-box">
+      <h4>视觉规范</h4>
+      <div class="spec-row">
+        <div class="color-chip"><span class="color-dot" style="background:#F7F8FA"></span>主背景 #F7F8FA</div>
+        <div class="color-chip"><span class="color-dot" style="background:#FFFFFF;border:1px solid #E8E8E8"></span>卡片 #FFFFFF</div>
+        <div class="color-chip"><span class="color-dot" style="background:#1677FF"></span>强调蓝 #1677FF</div>
+        <div class="color-chip"><span class="color-dot" style="background:#E6F4FF"></span>数据事实底 #E6F4FF</div>
+        <div class="color-chip"><span class="color-dot" style="background:#52C41A"></span>可靠性高 #52C41A</div>
+        <div class="color-chip"><span class="color-dot" style="background:#FAAD14"></span>可靠性中 #FAAD14</div>
+        <div class="color-chip"><span class="color-dot" style="background:#FF4D4F"></span>可靠性低 #FF4D4F</div>
+      </div>
+      <div class="spec-note">
+        <b>信任弧设计</b>：数据事实区（浅蓝底#E6F4FF）视觉权重高于AI分析区（白底），确保用户"先信数据，再参考AI"。<br>
+        <b>移动端适配</b>：场景页采用375px手机壳框架，模拟企业微信内嵌浏览器；运营审核后台采用宽屏布局。<br>
+        <b>字体</b>：标题16px / 正文14px / 辅助12px · 数字取整不显示小数 · 每段≤2句 · 整体≤200字
+      </div>
+    </div>
+  </div>
+</body>
+</html>

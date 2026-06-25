@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>异常详情 · AI能效管家</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#EDEDED;color:#1F1F1F;display:flex;justify-content:center;min-height:100vh}
+  .phone{width:375px;background:#F7F8FA;min-height:100vh;box-shadow:0 0 20px rgba(0,0,0,.08)}
+  .statusbar{height:36px;background:#fff;display:flex;justify-content:space-between;align-items:center;padding:0 16px;font-size:12px;font-weight:600}
+  .navbar{background:#fff;height:44px;display:flex;align-items:center;padding:0 12px;border-bottom:1px solid #E8E8E8;position:sticky;top:0;z-index:10}
+  .navbar .back{font-size:22px;color:#1677FF;cursor:pointer}
+  .navbar .title{flex:1;text-align:center;font-size:16px;font-weight:600}
+  .content{padding:12px}
+  .card{background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:12px;overflow:hidden}
+  /* 异常概览 */
+  .overview{padding:16px}
+  .ov-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .tag{font-size:11px;padding:3px 8px;border-radius:10px;font-weight:500}
+  .tag-behavior{background:#FFF7E6;color:#D48806;border:1px solid #FFE58F}
+  .tag-priority-mid{background:#FFF1F0;color:#FF4D4F;border:1px solid #FFCCC7}
+  .tag-status{background:#E6F4FF;color:#1677FF;border:1px solid #ADC6FF}
+  .ov-title{font-size:17px;font-weight:600;margin-bottom:6px}
+  .ov-time{font-size:12px;color:#8C8C8C}
+  /* 详情 */
+  .detail{padding:0 16px 14px}
+  .detail .label{font-size:12px;font-weight:600;color:#595959;margin-bottom:8px}
+  .d-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .d-item{background:#F7F8FA;border-radius:6px;padding:10px}
+  .d-item .k{font-size:11px;color:#8C8C8C}
+  .d-item .v{font-size:13px;font-weight:600;margin-top:2px}
+  .d-item .v.warn{color:#FF4D4F}
+  /* 根因推测 */
+  .root{padding:0 16px 14px}
+  .root .label{font-size:12px;font-weight:600;color:#595959;margin-bottom:8px}
+  .reliability{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:10px;margin-bottom:10px}
+  .rel-mid{background:#FFF7E6;color:#D48806;border:1px solid #FFE58F}
+  .root-box{background:#FAFAFA;border-radius:8px;padding:12px;font-size:13px;line-height:1.7}
+  .root-box .rh{font-weight:600;margin-bottom:6px}
+  .root-box .ev{font-size:12px;color:#595959;margin-top:8px;padding-top:8px;border-top:1px dashed #E8E8E8}
+  .src-link{color:#1677FF;font-size:12px;cursor:pointer;margin-top:8px;display:inline-block}
+  /* 五分类图例 */
+  .cat-legend{display:flex;gap:6px;flex-wrap:wrap;padding:0 16px 14px}
+  .cl-item{font-size:10px;padding:3px 7px;border-radius:8px;border:1px solid #E8E8E8;color:#8C8C8C}
+  .cl-item.active{background:#FFF7E6;color:#D48806;border-color:#FFE58F}
+  /* 处理建议 */
+  .suggest{padding:0 16px 14px}
+  .suggest .label{font-size:12px;font-weight:600;color:#595959;margin-bottom:8px}
+  .s-item{display:flex;gap:8px;margin-bottom:8px;font-size:13px;line-height:1.6}
+  .s-item .num{width:20px;height:20px;background:#1677FF;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+  .s-item .save{color:#52C41A;font-weight:600}
+  /* 工单按钮 */
+  .action{padding:0 16px 16px}
+  .btn-create{width:100%;background:#1677FF;color:#fff;border:none;border-radius:8px;padding:12px;font-size:14px;cursor:pointer;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px}
+  .btn-created{width:100%;background:#52C41A;color:#fff;border:none;border-radius:8px;padding:12px;font-size:14px;cursor:default}
+  /* 时间线 */
+  .timeline{padding:16px}
+  .timeline .label{font-size:12px;font-weight:600;color:#595959;margin-bottom:12px}
+  .tl-item{display:flex;gap:10px;margin-bottom:14px;position:relative}
+  .tl-item:last-child{margin-bottom:0}
+  .tl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px}
+  .tl-dot.done{background:#52C41A}
+  .tl-dot.pending{background:#FAAD14}
+  .tl-item:not(:last-child)::before{content:'';position:absolute;left:4px;top:18px;bottom:-14px;width:2px;background:#E8E8E8}
+  .tl-content .tl-time{font-size:11px;color:#8C8C8C}
+  .tl-content .tl-text{font-size:13px;margin-top:2px}
+  /* 工单卡片 */
+  .workorder{padding:14px 16px;background:#F6FFED;border:1px solid #B7EB8F;border-radius:8px;margin:0 16px 16px;display:none}
+  .workorder.show{display:block}
+  .workorder .wo-t{font-size:13px;font-weight:600;color:#52C41A;margin-bottom:8px}
+  .workorder .wo-row{font-size:12px;color:#595959;padding:2px 0}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="statusbar"><span>8:36</span><span>▮▮▮ 📶 🔋92%</span></div>
+  <div class="navbar">
+    <span class="back" onclick="history.back()">‹</span>
+    <span class="title">异常详情</span>
+  </div>
+  <div class="content">
+    <!-- 异常概览 -->
+    <div class="card">
+      <div class="overview">
+        <div class="ov-tags">
+          <span class="tag tag-behavior">👤 行为类</span>
+          <span class="tag tag-priority-mid">🟡 优先级：中</span>
+          <span class="tag tag-status">⏳ 状态：待处理</span>
+        </div>
+        <div class="ov-title">夜间空调未关</div>
+        <div class="ov-time">检测时间：2026-06-18 23:00 ~ 06-19 05:00</div>
+      </div>
+
+      <!-- 异常详情 -->
+      <div class="detail">
+        <div class="label">📋 异常详情</div>
+        <div class="d-grid">
+          <div class="d-item"><div class="k">发生位置</div><div class="v">呼吸内科候诊区</div></div>
+          <div class="d-item"><div class="k">关联设备</div><div class="v">空调回路 AAC-0218</div></div>
+          <div class="d-item"><div class="k">异常能耗</div><div class="v warn">12.6 kWh</div></div>
+          <div class="d-item"><div class="k">额外耗电</div><div class="v warn">+10.8 kWh</div></div>
+          <div class="d-item"><div class="k">平均功率</div><div class="v">2.1 kW</div></div>
+          <div class="d-item"><div class="k">基线功率</div><div class="v">0.3 kW</div></div>
+        </div>
+      </div>
+
+      <!-- 五分类图例 -->
+      <div class="cat-legend">
+        <span class="cl-item">🌤️ 气象类</span>
+        <span class="cl-item active">👤 行为类</span>
+        <span class="cl-item">🔧 设备类</span>
+        <span class="cl-item">📏 计量类</span>
+        <span class="cl-item">🏥 业务类</span>
+      </div>
+
+      <!-- 根因推测 -->
+      <div class="root">
+        <div class="label">🔍 AI根因推测</div>
+        <span class="reliability rel-mid">🟡 可能性中等，建议核实</span>
+        <div class="root-box">
+          <div class="rh">推测原因：下班后空调未关闭</div>
+          6月18日 23:00 至次日 05:00，候诊区空调功率持续维持 2.1kW，而该时段正常基线为 0.3kW（夜间无人时段空调应关闭或维持待机）。
+          <div class="ev">
+            <b>判断依据：</b><br>
+            ① 功率偏离基线 7倍（2.1 vs 0.3）<br>
+            ② 时段为非工作时间（23:00-05:00）<br>
+            ③ 无天气突变（当日气温22-28℃正常）<br>
+            ④ 无设备故障告警（空调运行参数正常）<br>
+            ⑤ 业务量正常（无夜间急诊记录）
+          </div>
+          <span class="src-link" onclick="alert('数据来源：PMS电表 AAC-0218 · 采集频率15分钟 · 数据完整率100%')">📎 查看数据来源</span>
+        </div>
+      </div>
+
+      <!-- 处理建议 -->
+      <div class="suggest">
+        <div class="label">💡 处理建议</div>
+        <div class="s-item"><div class="num">1</div><div>确认夜班管理流程，下班前检查空调关闭</div></div>
+        <div class="s-item"><div class="num">2</div><div>建议加装定时开关，22:00自动关闭候诊区空调</div></div>
+        <div class="s-item"><div class="num">3</div><div>预计整改后 <span class="save">月省约200元</span>（按每月3次×10.8kWh×0.85元计）</div></div>
+      </div>
+
+      <!-- 工单按钮 -->
+      <div class="action">
+        <button class="btn-create" id="createBtn" onclick="createOrder()">📝 创建整改工单</button>
+        <div class="workorder" id="workorder">
+          <div class="wo-t">✅ 工单已创建</div>
+          <div class="wo-row">工单号：WO-2026-0618-007</div>
+          <div class="wo-row">科室：呼吸内科 · 问题：夜间空调未关 · 优先级：P1</div>
+          <div class="wo-row">已推送至：后勤处工单系统 + 运营经理企微</div>
+          <div class="wo-row">责任人：科室主任（48h内自查响应）</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 处理时间线 -->
+    <div class="card">
+      <div class="timeline">
+        <div class="label">⏱️ 处理时间线</div>
+        <div class="tl-item">
+          <div class="tl-dot done"></div>
+          <div class="tl-content">
+            <div class="tl-time">06-18 23:15</div>
+            <div class="tl-text">AI检测到异常，自动记录</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot done"></div>
+          <div class="tl-content">
+            <div class="tl-time">06-19 07:30</div>
+            <div class="tl-text">运营经理审核通过，推送至科室主任周报</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot done"></div>
+          <div class="tl-content">
+            <div class="tl-time">06-24 08:36</div>
+            <div class="tl-text">科室主任查看异常详情</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot pending"></div>
+          <div class="tl-content">
+            <div class="tl-time">待处理</div>
+            <div class="tl-text">创建整改工单 → 后勤处48h内响应</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function createOrder(){
+  document.getElementById('createBtn').style.display='none';
+  document.getElementById('workorder').classList.add('show');
+}
+</script>
+</body>
+</html>
